@@ -18,3 +18,9 @@ username=test@test.com&password=1234&remember=1
 
 ### 메인페이지
 GET http://localhost:9080
+
+### 사용자 페이지
+GET http://localhost:9080/user
+
+### 관리자 페이지
+GET http://localhost:9080/admin

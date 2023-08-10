@@ -16,6 +16,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.scrypt.SCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager;
 
 import static org.springframework.boot.autoconfigure.security.servlet.PathRequest.toH2Console;
 
@@ -36,8 +37,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http.authorizeHttpRequests()
-                .requestMatchers(HttpMethod.POST,"/auth/login").permitAll()
-                .requestMatchers(HttpMethod.POST,"/auth/signup").permitAll()
+                .requestMatchers("/auth/login").permitAll()
+                .requestMatchers("/auth/signup").permitAll()
+                .requestMatchers("/user").hasAnyRole("USER","ADMIN")
+                //.requestMatchers("/admin").hasRole("ADMIN")
+                // 역할과 권한을 2개 동시에 주고 싶을때
+                .requestMatchers("/admin")
+                    .access(new WebExpressionAuthorizationManager("hasRole('ADMIN') AND hasAuthority('WRITE')"))
                 .anyRequest().authenticated()
                 .and()
                 .formLogin() // 폼 로그인 관련 설정
