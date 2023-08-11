@@ -1,7 +1,12 @@
 package com.example.securitystudy.config;
 
 import com.example.securitystudy.domain.User;
+import com.example.securitystudy.handler.Http401Handler;
+import com.example.securitystudy.handler.Http403Handler;
+import com.example.securitystudy.handler.LoginFailHandler;
 import com.example.securitystudy.repository.UserRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -22,7 +27,10 @@ import static org.springframework.boot.autoconfigure.security.servlet.PathReques
 
 @Configuration
 @EnableWebSecurity(debug = false)
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final ObjectMapper objectMapper;
 
     // 스프링 시큐리티 권한을 무시하는 설정
     @Bean
@@ -52,6 +60,7 @@ public class SecurityConfig {
                     .usernameParameter("username")
                     .passwordParameter("password")
                     .defaultSuccessUrl("/")
+                    .failureHandler(new LoginFailHandler(objectMapper))
                 .and()
                 .rememberMe(rm -> rm.rememberMeParameter("remember") // 사용할 파라미터명 설정
                         .rememberMeCookieName("remember-me")  // 쿠키명 설정
@@ -61,6 +70,10 @@ public class SecurityConfig {
                 .headers()
                     .frameOptions().disable()
                 .and()
+                .exceptionHandling(e -> {
+                    e.accessDeniedHandler(new Http403Handler(objectMapper));
+                    e.authenticationEntryPoint(new Http401Handler(objectMapper));
+                })
                 // .userDetailsService(useDetailsService()) // 사용자 조회를 위해 만들어준다.
                 .csrf(AbstractHttpConfigurer::disable)
                 .build();
@@ -80,12 +93,9 @@ public class SecurityConfig {
 //        return manager;
 
 
-        return new UserDetailsService() {
-            @Override
-            public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-                User user = userRepository.findByEmail(username).orElseThrow(() -> new UsernameNotFoundException(username + "을 찾을 수 없습니다."));
-                return new UserPrincipal(user);
-            }
+        return username -> {
+            User user = userRepository.findByEmail(username).orElseThrow(() -> new UsernameNotFoundException(username + "을 찾을 수 없습니다."));
+            return new UserPrincipal(user);
         };
     }
 
