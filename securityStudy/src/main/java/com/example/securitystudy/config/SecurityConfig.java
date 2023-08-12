@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
@@ -27,6 +28,7 @@ import static org.springframework.boot.autoconfigure.security.servlet.PathReques
 
 @Configuration
 @EnableWebSecurity(debug = false)
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -47,7 +49,7 @@ public class SecurityConfig {
         return http.authorizeHttpRequests()
                 .requestMatchers("/auth/login").permitAll()
                 .requestMatchers("/auth/signup").permitAll()
-                .requestMatchers("/user").hasAnyRole("USER","ADMIN")
+//                .requestMatchers("/user").hasAnyRole("USER","ADMIN")
                 //.requestMatchers("/admin").hasRole("ADMIN")
                 // 역할과 권한을 2개 동시에 주고 싶을때
                 .requestMatchers("/admin")
